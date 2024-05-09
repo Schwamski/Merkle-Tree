@@ -1,3 +1,6 @@
+#ifndef HASH_H
+#define HASH_H
+
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -26,3 +29,5 @@ class Djb2Hash : public Hash {
     public:
     std::string hash(const std::string& input);
 };
+
+#endif

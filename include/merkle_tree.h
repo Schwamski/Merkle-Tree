@@ -1,3 +1,6 @@
+#ifndef MERKLE_TREE_H
+#define MERKLE_TREE_H
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -36,5 +39,6 @@ public:
 
 private:
     MerkleTree tree;
-    
 };
+
+#endif

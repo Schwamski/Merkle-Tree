@@ -9,6 +9,18 @@
 
 using namespace std;
 
+// Function to calculate the next highest power of 2
+unsigned nextPowerOf2(unsigned n) {
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+    return n;
+}
+
 // Convert int to binary vector<string> padded to length
 vector<string> intToBinaryVector(int number, int length) {
     vector<string> binaryMessage(length, "0");
@@ -83,5 +95,74 @@ int main() {
 
     outFile.close();
     cout << "CSV created with " << test_samples << " entries." << endl;
+
+    // user input binary message
+    std::string input;
+    std::cout << "Enter a string: ";
+    std::getline(std::cin, input);
+    std::vector<std::string> binaryMessage;
+    for (char c : input) {
+        std::bitset<8> binary(c);
+        for (int i = 7; i >= 0; --i) {
+            binaryMessage.push_back(binary.test(i) ? "1" : "0");
+        }
+    }
+
+    // print binary
+    std::cout << "Binary Message: ";
+    for (const std::string& bit : binaryMessage) {
+        std::cout << bit;
+    }
+    std::cout << std::endl;
+
+    // pad binary and create Merkle Tree
+    unsigned requiredSize = nextPowerOf2(binaryMessage.size());
+    binaryMessage.resize(requiredSize, "0");
+    MerkleTree tree(binaryMessage);
+    std::cout << "Root Hash: " << tree.root->hash << std::endl;
+
+    // Verify a bit using Merkle tree
+    Verifier verifier(tree);
+    for (int i = 0; i < 4; ++i) {
+        int choiceBit;
+        std::cout << "Choose bit to verify: ";
+        std::cin >> choiceBit;
+        std::cin.ignore();
+        auto [bitValue, verificationParams] = tree.generateVerificationParameters(binaryMessage, choiceBit);
+        bool result = verifier.verify(tree.root->hash, bitValue, choiceBit, binaryMessage.size(), verificationParams);
+        std::cout << "Verification result: " << (result ? "True" : "False") << std::endl;
+    }
+
+    //--------TAMPER WITH MESSAGE
+    // user input binary message
+    std::string newInput;
+    std::cout << "Try to change the secret message: ";
+    std::getline(std::cin, newInput);
+    std::vector<std::string> newMessage;
+    for (char c : newInput) {
+        std::bitset<8> binary(c);
+        for (int i = 7; i >= 0; --i) {
+            newMessage.push_back(binary.test(i) ? "1" : "0");
+        }
+    }
+
+    // print binary
+    std::cout << "Binary Message: ";
+    for (const std::string& bit : newMessage) {
+        std::cout << bit;
+    }
+    std::cout << std::endl;
+
+    // Verify a bit using Merkle tree
+    for (int i = 0; i < 4; ++i) {
+        int choiceBit;
+        std::cout << "Choose bit to verify: ";
+        std::cin >> choiceBit;
+        std::cin.ignore();
+        auto [bitValue, verificationParams] = tree.generateVerificationParameters(newMessage, choiceBit);
+        bool result = verifier.verify(tree.root->hash, bitValue, choiceBit, binaryMessage.size(), verificationParams);
+        std::cout << "Verification result: " << (result ? "True" : "False") << std::endl;
+    }
+    
     return 0;
 }
